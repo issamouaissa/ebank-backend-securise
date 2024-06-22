@@ -1,19 +1,15 @@
 package org.sid.rbankingbackend.web;
 
-import org.sid.rbankingbackend.dtos.AccountHistoryDTO;
-import org.sid.rbankingbackend.dtos.AccountOperationDTO;
-import org.sid.rbankingbackend.dtos.BankAccountDTO;
+import org.sid.rbankingbackend.dtos.*;
+import org.sid.rbankingbackend.exceptions.BalanceNotSufficientException;
 import org.sid.rbankingbackend.exceptions.BankAccountNotFoundException;
 import org.sid.rbankingbackend.services.BankAccountService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-
+@CrossOrigin("*")
 
 public class BankAccountRestAPI {
     private BankAccountService bankAccountService;
@@ -39,6 +35,23 @@ public class BankAccountRestAPI {
             , @RequestParam(name = "page",defaultValue = "0") int page
             , @RequestParam(name = "size",defaultValue = "5") int size) throws BankAccountNotFoundException {
         return bankAccountService.getAccountHistory(accountId,page,size);
+    }
+
+    @PostMapping("/accounts/debit")
+    public DebitDTO debit(@RequestBody DebitDTO debitDTO) throws BankAccountNotFoundException, BalanceNotSufficientException {
+        this.bankAccountService.debit(debitDTO.getAccountId(), debitDTO.getAmount(), debitDTO.getDescription());
+        return debitDTO;
+    }
+
+    @PostMapping("/accounts/credit")
+    public CreditDTO credit(@RequestBody CreditDTO creditDTO) throws BankAccountNotFoundException{
+        this.bankAccountService.credit(creditDTO.getAccountId(), creditDTO.getAmount(), creditDTO.getDescription());
+        return creditDTO;
+    }
+
+    @PostMapping("/accounts/transfer")
+    public void transfer(@RequestBody TransferRequestDTO transferRequestDTO) throws BankAccountNotFoundException, BalanceNotSufficientException {
+        this.bankAccountService.transfer(transferRequestDTO.getAccountSource(), transferRequestDTO.getAccountDestination(), transferRequestDTO.getAmount());
     }
 }
 
